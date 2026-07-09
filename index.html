@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Daily Ledger — Registro Diario</title>
+<meta name="theme-color" content="#16233F">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css?v=1.2.0">
+</head>
+<body>
+
+<header class="app-header">
+  <span class="logo" aria-hidden="true">📒</span>
+  <div class="app-header-text">
+    <h1>Daily Ledger</h1>
+    <p>Registro diario de gastos, compras y ventas</p>
+  </div>
+</header>
+
+<div id="unexported-badge" class="unexported-badge" hidden>
+  <span id="unexported-badge-text"></span>
+  <button id="unexported-badge-export-btn" class="btn btn-primary btn-small">Exportar ahora</button>
+</div>
+
+<main class="container">
+
+  <section class="card date-picker-card">
+    <label for="day-date">Fecha del registro</label>
+    <input type="date" id="day-date" required>
+  </section>
+
+  <div id="accordion" class="accordion">
+
+    <section class="accordion-section" data-section="gastos">
+      <button class="accordion-header" data-target="gastos" aria-expanded="false" aria-controls="gastos-body">
+        <span class="accordion-title">💸 Gastos</span>
+        <span class="accordion-total" data-total="gastos">₡0.00</span>
+        <span class="accordion-chevron">▾</span>
+      </button>
+      <div class="accordion-body" id="gastos-body" data-body="gastos" hidden>
+        <div class="rows" id="gastos-rows"></div>
+        <button type="button" class="btn btn-add" data-add="gastos">+ Agregar gasto</button>
+      </div>
+    </section>
+
+    <section class="accordion-section" data-section="compras">
+      <button class="accordion-header" data-target="compras" aria-expanded="false" aria-controls="compras-body">
+        <span class="accordion-title">📦 Compras de material</span>
+        <span class="accordion-total" data-total="compras">₡0.00</span>
+        <span class="accordion-chevron">▾</span>
+      </button>
+      <div class="accordion-body" id="compras-body" data-body="compras" hidden>
+        <div class="rows" id="compras-rows"></div>
+        <button type="button" class="btn btn-add" data-add="compras">+ Agregar compra</button>
+      </div>
+    </section>
+
+    <section class="accordion-section" data-section="ventas">
+      <button class="accordion-header" data-target="ventas" aria-expanded="false" aria-controls="ventas-body">
+        <span class="accordion-title">💰 Ventas</span>
+        <span class="accordion-total" data-total="ventas">₡0.00</span>
+        <span class="accordion-chevron">▾</span>
+      </button>
+      <div class="accordion-body" id="ventas-body" data-body="ventas" hidden>
+        <div class="rows" id="ventas-rows"></div>
+        <button type="button" class="btn btn-add" data-add="ventas">+ Agregar venta</button>
+      </div>
+    </section>
+
+    <section class="accordion-section" data-section="resumen">
+      <button class="accordion-header" data-target="resumen" aria-expanded="false" aria-controls="resumen-body">
+        <span class="accordion-title">📊 Resumen del día</span>
+        <span class="accordion-total" data-total="profit">₡0.00</span>
+        <span class="accordion-chevron">▾</span>
+      </button>
+      <div class="accordion-body" id="resumen-body" data-body="resumen" hidden>
+        <dl class="summary-list">
+          <dt>Total Gastos</dt><dd id="summary-gastos">₡0.00</dd>
+          <dt>Total Compras</dt><dd id="summary-compras">₡0.00</dd>
+          <dt>Total Ventas</dt><dd id="summary-ventas">₡0.00</dd>
+          <dt class="profit-label">Ganancia del día</dt><dd id="summary-profit" class="profit-value">₡0.00</dd>
+        </dl>
+      </div>
+    </section>
+
+  </div>
+
+  <button id="save-day-btn" class="btn btn-primary btn-large" type="button">Guardar día</button>
+
+  <section class="card">
+    <h2>Días guardados</h2>
+    <div id="saved-days-empty" class="empty-state">Aún no hay días guardados este mes. Llena el formulario de arriba y toca "Guardar día".</div>
+    <div id="saved-days-table-wrap" class="table-scroll" hidden>
+      <table id="saved-days-table">
+        <thead><tr><th>Fecha</th><th>Ganancia</th><th></th></tr></thead>
+        <tbody id="saved-days-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card monthly-card">
+    <h2>Rentabilidad del mes</h2>
+    <dl class="summary-list">
+      <dt>Ganancia total del mes</dt><dd id="monthly-profit">₡0.00</dd>
+      <dt>Rentabilidad</dt><dd id="monthly-rentabilidad">—</dd>
+    </dl>
+  </section>
+
+  <section class="card actions-card">
+    <button id="export-btn" class="btn btn-primary btn-large" type="button">Exportar Excel</button>
+    <button id="import-btn" class="btn btn-secondary btn-large" type="button">Importar Excel</button>
+    <input type="file" id="import-file-input" accept=".xlsx" hidden>
+    <button id="undo-import-btn" class="btn btn-text" type="button" hidden>Deshacer última importación</button>
+    <hr class="actions-divider">
+    <button id="close-month-btn" class="btn btn-secondary btn-large" type="button">Cerrar mes</button>
+    <p class="hint">Exporta el Excel del mes y borra los días guardados de este dispositivo — usalo solo cuando terminaste el mes.</p>
+    <hr class="actions-divider">
+    <div id="drive-status" class="drive-status">
+      <button id="drive-connect-btn" class="btn btn-secondary btn-large" type="button">Conectar Google Drive</button>
+      <div id="drive-connected-row" class="drive-connected-row" hidden>
+        <span>✓ Conectado a Google Drive — tus exportaciones suben solas</span>
+        <button id="drive-disconnect-btn" class="btn btn-text" type="button">Desconectar</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="dialog-overlay" class="dialog-overlay" hidden>
+  <div id="dialog-box" class="dialog-box" role="alertdialog" aria-modal="true"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<footer class="app-footer">Daily Ledger · v1.0.0 · build <span id="build-date"></span></footer>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="calc.js?v=1.2.0"></script>
+<script src="storage.js?v=1.2.0"></script>
+<script src="xlsx-io.js?v=1.2.0"></script>
+<script src="drive.js?v=1.2.0"></script>
+<script src="app.js?v=1.2.0"></script>
+</body>
+</html>

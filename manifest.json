@@ -1,0 +1,10 @@
+{
+  "name": "Daily Ledger — Registro Diario",
+  "short_name": "Daily Ledger",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#16233F",
+  "theme_color": "#16233F",
+  "orientation": "portrait",
+  "icons": []
+}

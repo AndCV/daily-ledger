@@ -1,0 +1,238 @@
+/* Daily Ledger — brand palette: navy #16233F/#1B2A4A, orange #F26A21, white.
+   D2: 48x48px minimum touch targets. D3: orange only on large/bold text and
+   primary buttons, never small body copy (contrast rule). D4: long-table
+   internal scroll. Mobile-first, then desktop. */
+
+:root {
+  --navy-dark: #16233F;
+  --navy: #1B2A4A;
+  --orange: #F26A21;
+  --white: #FFFFFF;
+  --gray-bg: #F4F5F7;
+  --gray-border: #DADFE6;
+  --text-dark: #1B2A4A;
+  --text-muted: #5C6B82;
+  --danger: #C0392B;
+  --success: #1E7A46;
+  --touch-min: 48px;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: var(--gray-bg);
+  color: var(--text-dark);
+  font-size: 16px;
+  line-height: 1.4;
+  padding-bottom: 3rem;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Header */
+.app-header {
+  background: var(--navy-dark);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+.app-header .logo { font-size: 2.25rem; line-height: 1; }
+.app-header h1 { font-size: 1.15rem; margin: 0; }
+.app-header p { font-size: 0.8rem; margin: 0.15rem 0 0; color: #C9D2E3; }
+
+/* Unmissable unexported-days badge (D8) — persistent, not a toast. */
+.unexported-badge {
+  background: #FFF3E8;
+  border-bottom: 2px solid var(--orange);
+  color: var(--navy-dark);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* Cards / sections */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.card h2 { font-size: 1.05rem; margin: 0 0 0.75rem; color: var(--navy-dark); }
+.card label { display: block; font-weight: 600; margin-bottom: 0.35rem; font-size: 0.95rem; }
+.hint { font-size: 0.8rem; color: var(--text-muted); margin: 0.4rem 0 0; }
+
+input[type="date"], input[type="number"], input[type="text"], select {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0.5rem 0.6rem;
+  font-size: 1rem;
+  border: 1px solid var(--gray-border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text-dark);
+}
+
+/* Accordion */
+.accordion { margin: 1rem 0; }
+.accordion-section {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: 10px;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+}
+.accordion-header {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--white);
+  border: none;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  cursor: pointer;
+  text-align: left;
+}
+.accordion-section.open .accordion-header { background: var(--navy-dark); color: var(--white); }
+.accordion-title { flex: 1; }
+.accordion-total {
+  font-weight: 700;
+  color: var(--orange); /* large/bold — allowed use of orange per D3 */
+  font-size: 1rem;
+}
+.accordion-chevron { font-size: 1rem; opacity: 0.7; }
+.accordion-body { padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--gray-border); }
+
+/* Rows — stacked on narrow mobile so the name field has room to breathe
+   (an elderly user needs to read a long provider name in full, not
+   truncated to 6 characters). Grid layout on wider screens. */
+.rows { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 0.75rem; }
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "name   remove"
+    "amount amount";
+  gap: 0.4rem;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-border);
+}
+.row .row-name { grid-area: name; }
+.row .row-remove { grid-area: remove; }
+.row .row-amount { grid-area: amount; }
+.row .row-material { grid-area: material; grid-column: 1 / -1; }
+
+@media (min-width: 480px) {
+  .row {
+    grid-template-columns: 1fr 130px 48px;
+    grid-template-areas: "name amount remove";
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .row .row-material { grid-column: 1 / -1; }
+}
+.row-remove {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Buttons */
+.btn {
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  padding: 0.6rem 1rem;
+}
+.btn-primary { background: var(--orange); color: var(--white); }
+.btn-secondary { background: var(--navy-dark); color: var(--white); }
+.btn-text { background: transparent; color: var(--navy); text-decoration: underline; font-weight: 600; }
+.btn-add { background: var(--gray-bg); color: var(--navy-dark); border: 1px dashed var(--gray-border); width: 100%; }
+.btn-large { width: 100%; font-size: 1.05rem; margin: 0.5rem 0; }
+.btn-small { min-height: 40px; padding: 0.4rem 0.75rem; font-size: 0.9rem; }
+
+/* Summary */
+.summary-list { display: grid; grid-template-columns: 1fr auto; gap: 0.4rem 1rem; margin: 0; }
+.summary-list dt { color: var(--text-muted); font-weight: 500; }
+.summary-list dd { margin: 0; font-weight: 700; text-align: right; }
+.profit-label { font-weight: 700; color: var(--navy-dark); }
+.profit-value { color: var(--orange); font-size: 1.2rem; }
+
+/* Saved days table (D4: internal scroll past ~8-10 rows) */
+.table-scroll { max-height: 360px; overflow-y: auto; border: 1px solid var(--gray-border); border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+thead th { position: sticky; top: 0; background: var(--gray-bg); text-align: left; padding: 0.5rem; }
+tbody td { padding: 0.5rem; border-top: 1px solid var(--gray-border); }
+.today-row { background: #FFF7EF; font-weight: 700; }
+/* QA BUG-001: an `inline` pill fragments into two disconnected rounded
+   pieces when its text wraps on a narrow "Fecha" cell. Fix: the date+pills
+   wrapper is a flex-wrap row, and each pill is inline-flex + nowrap, so a
+   pill wraps onto its own line as one whole shape instead of splitting
+   mid-word. */
+.date-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; row-gap: 0.25rem; }
+.date-cell .pill { display: inline-flex; white-space: nowrap; margin-left: 0; }
+.pill { font-size: 0.7rem; background: var(--navy); color: var(--white); padding: 0.1rem 0.4rem; border-radius: 999px; margin-left: 0.3rem; }
+.pill-warning { background: var(--orange); }
+.profit-pos { color: var(--success); font-weight: 700; }
+.profit-neg { color: var(--danger); font-weight: 700; }
+
+.empty-state { color: var(--text-muted); padding: 1rem 0; text-align: center; }
+
+.actions-card { display: flex; flex-direction: column; gap: 0.5rem; }
+.actions-divider { border: none; border-top: 1px solid var(--gray-border); margin: 0.5rem 0; width: 100%; }
+.drive-connected-row {
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  text-align: center; font-size: 0.9rem; color: var(--success); font-weight: 600;
+}
+
+/* Dialog (D1 interaction states) */
+.dialog-overlay {
+  position: fixed; inset: 0; background: rgba(22, 35, 63, 0.55);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;
+}
+.dialog-box { background: var(--white); border-radius: 12px; padding: 1.25rem; max-width: 420px; width: 100%; }
+.dialog-box h3 { margin: 0 0 0.5rem; color: var(--navy-dark); }
+.dialog-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.dialog-buttons .btn { flex: 1; }
+
+.toast {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  background: var(--navy-dark); color: var(--white); padding: 0.6rem 1rem;
+  border-radius: 8px; font-size: 0.9rem; z-index: 60; max-width: 90vw; text-align: center;
+}
+
+.app-footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 2rem; }
+
+@media (min-width: 720px) {
+  .container { padding: 0 2rem; }
+  .app-header { padding: 1.25rem 2rem; }
+}

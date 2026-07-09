@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Daily Ledger — Pruebas</title>
+<style>
+  body { font-family: monospace; padding: 1rem; background: #16233F; color: #fff; }
+  .pass { color: #4ADE80; }
+  .fail { color: #F87171; font-weight: bold; }
+  #summary { font-size: 1.2rem; margin-bottom: 1rem; padding: 0.5rem; border-radius: 6px; }
+  #summary.ok { background: #14532D; }
+  #summary.bad { background: #7F1D1D; }
+  li { margin: 0.2rem 0; }
+</style>
+</head>
+<body>
+<h1>Daily Ledger — Pruebas (calc.js + xlsx-io.js)</h1>
+<div id="summary">Corriendo...</div>
+<ul id="results"></ul>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="calc.js?v=1.1.0"></script>
+<script src="storage.js?v=1.1.0"></script>
+<script src="xlsx-io.js?v=1.1.0"></script>
+<script src="tests.js?v=1.1.0"></script>
+</body>
+</html>
