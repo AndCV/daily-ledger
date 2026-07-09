@@ -377,13 +377,41 @@
 
   // ---------- Export ----------
 
+  // Identifies "this month's" Drive file by the earliest saved day's date,
+  // not today's date — so the running file matches the data being
+  // exported even if the device's clock has already rolled into a new
+  // month before the previous one is closed.
+  function currentMonthKey() {
+    if (state.days.length === 0) return todayISO().slice(0, 7);
+    const dates = state.days.map((d) => d.date).sort();
+    return dates[0].slice(0, 7);
+  }
+
   // Best-effort: the local download already succeeded by the time this
   // runs, so a Drive failure is surfaced but never blocks or reverses the
   // local export. Only fires if the user has connected Google Drive.
-  function maybeUploadToDrive(result) {
+  //
+  // Keeps ONE Drive file per month: repeated exports update that same file
+  // in place (via the remembered fileId) instead of piling up a new file
+  // each time. `finalizeMonth` (set by closeMonth) does one last update and
+  // then forgets the fileId, so the next export — next month — starts a
+  // fresh file.
+  function maybeUploadToDrive(result, options) {
+    const opts = options || {};
     if (!window.DriveUpload || !window.DriveUpload.isConnected()) return;
-    window.DriveUpload.uploadFile(result.blob, result.filename)
-      .then(() => showToast('Subido a Google Drive: ' + result.filename))
+    const monthKey = currentMonthKey();
+    const ref = window.Storage.getDriveFileRef();
+    const fileId = ref && ref.monthKey === monthKey ? ref.fileId : null;
+    const driveFilename = window.XlsxIO.monthlyFilename(monthKey);
+    window.DriveUpload.uploadFile(result.blob, driveFilename, fileId)
+      .then((driveFile) => {
+        if (opts.finalizeMonth) {
+          window.Storage.clearDriveFileRef();
+        } else {
+          window.Storage.setDriveFileRef({ fileId: driveFile.id, monthKey, filename: driveFile.name });
+        }
+        showToast('Subido a Google Drive: ' + driveFile.name);
+      })
       .catch((e) => showToast('No se pudo subir a Google Drive (el Excel local sí se guardó). ' + e.message));
   }
 
@@ -443,7 +471,7 @@
     renderSavedDays();
     updateUnexportedBadge();
     showToast('Mes cerrado. Excel exportado: ' + result.filename + '. Empezás un mes nuevo.');
-    maybeUploadToDrive(result);
+    maybeUploadToDrive(result, { finalizeMonth: true });
   }
 
   // ---------- Import (D10: preview + batch-apply + one-step undo) ----------

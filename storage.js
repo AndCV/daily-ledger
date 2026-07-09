@@ -17,6 +17,7 @@
 
   const DRAFT_KEY = 'daily_ledger_draft_v1';
   const DAYS_KEY = 'daily_ledger_saved_days_v1';
+  const DRIVE_FILE_REF_KEY = 'daily_ledger_drive_file_ref_v1';
 
   function detectAvailable() {
     try {
@@ -81,6 +82,38 @@
     }
   }
 
+  // Tracks the Drive file ID currently "open" for the month, so repeated
+  // exports update that same file instead of creating a new one each time.
+  // Cleared on "Cerrar mes" so the next export starts a fresh file.
+  function getDriveFileRef() {
+    if (!available) return null;
+    try {
+      const raw = window.localStorage.getItem(DRIVE_FILE_REF_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setDriveFileRef(ref) {
+    if (!available) return false;
+    try {
+      window.localStorage.setItem(DRIVE_FILE_REF_KEY, JSON.stringify(ref));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clearDriveFileRef() {
+    if (!available) return;
+    try {
+      window.localStorage.removeItem(DRIVE_FILE_REF_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   global.Storage = {
     available,
     saveDraft,
@@ -88,5 +121,8 @@
     clearDraft,
     saveDays,
     loadDays,
+    getDriveFileRef,
+    setDriveFileRef,
+    clearDriveFileRef,
   };
 })(window);

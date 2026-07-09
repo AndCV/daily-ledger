@@ -126,32 +126,87 @@
     }));
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function handleUploadResponse(res) {
+    if (res.status === 401) {
+      // Token expired/revoked server-side despite our local expiry check
+      // — drop it and let the caller retry (will re-prompt if needed).
+      storeToken(null);
+      throw new Error('La sesión de Google Drive expiró. Intentá exportar de nuevo.');
+    }
+    if (!res.ok) {
+      return res.text().then((body) => {
+        const err = new Error('Google Drive rechazó la subida (HTTP ' + res.status + '). ' + body.slice(0, 200));
+        err.status = res.status;
+        throw err;
+      });
+    }
+    return res.json();
+  }
+
+  function doCreateRequest(blob, filename, accessToken) {
+    const metadata = { name: filename, parents: [FOLDER_ID] };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob);
+
+    return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + accessToken },
+      body: form,
+    }).then(handleUploadResponse);
+  }
+
+  // Updates an existing file's content in place (used to keep one Excel
+  // file per month in Drive instead of a new file per export — see
+  // app.js's maybeUploadToDrive/currentMonthKey).
+  function doUpdateRequest(fileId, blob, filename, accessToken) {
+    const metadata = { name: filename };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob);
+
+    return fetch('https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(fileId) + '?uploadType=multipart&fields=id,name,webViewLink', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + accessToken },
+      body: form,
+    }).then(handleUploadResponse);
+  }
+
+  // Mobile Safari quirk: right after the OAuth popup closes and focus
+  // returns to the page, the very next fetch() sometimes fails with a bare
+  // "Load failed" — a generic network-layer error (not an HTTP response;
+  // browsers deliberately don't expose more detail for these), most likely
+  // because the tab hasn't fully "resumed" networking yet. Retrying once
+  // after a short delay reliably clears it without bothering the user.
+  function withNetworkRetry(fn) {
+    return fn().catch((err) => {
+      const isNetworkLevelFailure = err instanceof TypeError; // fetch() itself rejects with TypeError for network failures, unlike HTTP-status errors thrown above
+      if (!isNetworkLevelFailure) throw err;
+      return sleep(1200).then(fn);
+    });
+  }
+
   // Uploads a Blob to the configured shared folder. Auto-connects (may show
   // the consent popup) if not already connected.
-  function uploadFile(blob, filename) {
+  //
+  // If `fileId` is given, updates that existing file's content in place
+  // instead of creating a new one (so repeated exports within the same
+  // month land in one running file). Falls back to creating a new file if
+  // the referenced one is gone (e.g. someone deleted it from Drive).
+  function uploadFile(blob, filename, fileId) {
     return connect().then((accessToken) => {
-      const metadata = { name: filename, parents: [FOLDER_ID] };
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', blob);
-
-      return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken },
-        body: form,
-      }).then((res) => {
-        if (res.status === 401) {
-          // Token expired/revoked server-side despite our local expiry check
-          // — drop it and let the caller retry (will re-prompt if needed).
-          storeToken(null);
-          throw new Error('La sesión de Google Drive expiró. Intentá exportar de nuevo.');
+      if (!fileId) {
+        return withNetworkRetry(() => doCreateRequest(blob, filename, accessToken));
+      }
+      return withNetworkRetry(() => doUpdateRequest(fileId, blob, filename, accessToken)).catch((err) => {
+        if (err && err.status === 404) {
+          return withNetworkRetry(() => doCreateRequest(blob, filename, accessToken));
         }
-        if (!res.ok) {
-          return res.text().then((body) => {
-            throw new Error('Google Drive rechazó la subida (HTTP ' + res.status + '). ' + body.slice(0, 200));
-          });
-        }
-        return res.json();
+        throw err;
       });
     });
   }

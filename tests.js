@@ -209,6 +209,16 @@
     assertEqual('T18: "1.234,56" (formato CR) se interpreta como 1234.56, no como 1.23', days[0].gastos[0].amount, 1234.56);
   })();
 
+  (function testMonthlyFilenameIsStablePerMonth() {
+    // Drive sync keeps one file per month (updated in place on each export,
+    // rotated on "Cerrar mes") — the filename must be identical for every
+    // export within the same month, and differ across months.
+    assertEqual('monthlyFilename: mismo mes -> mismo nombre',
+      window.XlsxIO.monthlyFilename('2026-07'), window.XlsxIO.monthlyFilename('2026-07'));
+    assert('monthlyFilename: distinto mes -> distinto nombre',
+      window.XlsxIO.monthlyFilename('2026-07') !== window.XlsxIO.monthlyFilename('2026-08'));
+  })();
+
   // ---- render ----
 
   function render() {

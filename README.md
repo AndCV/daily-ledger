@@ -26,7 +26,9 @@ enough for a non-technical, older primary user.
   destructive side effect
 - Optional one-click Google Drive sync — once connected, every export also uploads to a
   shared Drive folder automatically, implemented entirely client-side via OAuth (no
-  custom backend, no server-side token storage)
+  custom backend, no server-side token storage). Repeated exports within the same month
+  update that same Drive file in place instead of piling up a new file each time;
+  "Cerrar mes" finalizes it and the next export starts a fresh file for the new month
 - Mobile-first, large touch targets, Spanish UI, minimal steps
 
 ## Why it's interesting technically

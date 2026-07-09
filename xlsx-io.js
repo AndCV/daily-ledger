@@ -25,11 +25,20 @@
   }
 
   function exportFilename() {
-    // T12: dated filename, never a fixed name that silently overwrites.
+    // T12: dated filename, never a fixed name that silently overwrites. This
+    // is for the LOCAL download only — a browser can't silently overwrite a
+    // file it already downloaded, so each local export stays its own file.
     const d = new Date();
     const stamp = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
       '_' + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds());
     return 'daily-ledger-' + stamp + '.xlsx';
+  }
+
+  // For the Google Drive copy: one filename per month, so repeated exports
+  // within the same month can be recognized as updates to the same file
+  // (see drive.js's uploadFile fileId param and app.js's currentMonthKey).
+  function monthlyFilename(monthKey) {
+    return 'daily-ledger-' + monthKey + '.xlsx';
   }
 
   function buildWorkbook(state) {
@@ -240,5 +249,6 @@
     exportToExcel,
     parseWorkbook,
     exportFilename,
+    monthlyFilename,
   };
 })(window);
